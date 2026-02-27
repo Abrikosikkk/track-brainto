@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainrot Tracker - Steal a Brainrot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        :root {
+            --bg-primary: #0a0c10;
+            --bg-secondary: #15181e;
+            --bg-card: #1e222a;
+            --border: #2f3540;
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+            --accent: #60a5fa;
+            --accent-hover: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        body {
+            background: var(--bg-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            padding: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        h1 {
+            color: var(--text-primary);
+            font-size: 2.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .title-gradient {
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .game-link {
+            background: var(--bg-card);
+            padding: 12px 24px;
+            border-radius: 40px;
+            color: var(--accent);
+            text-decoration: none;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .game-link:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), #a78bfa);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-value {
+            color: var(--text-primary);
+            font-size: 2.8rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .stat-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 6px 12px;
+            border-radius: 30px;
+            color: var(--success);
+            font-size: 0.85rem;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .search-section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .search-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 16px 20px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: #252b35;
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 12px 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: var(--border);
+            color: var(--text-primary);
+        }
+
+        .filter-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .animals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .animal-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .animal-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(96, 165, 250, 0.2);
+        }
+
+        .animal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .animal-name {
+            color: var(--text-primary);
+            font-size: 1.4rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .animal-emoji {
+            font-size: 1.8rem;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+        }
+
+        .animal-count {
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 10px rgba(96, 165, 250, 0.3);
+        }
+
+        .animal-traits {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+            min-height: 40px;
+        }
+
+        .trait {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            border: 1px solid var(--border);
+        }
+
+        .animal-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 15px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-item .label {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-item .value {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .animal-owners {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .owner-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 2px solid var(--bg-card);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-secondary);
+            background: var(--bg-card);
+            border-radius: 20px;
+            grid-column: 1 / -1;
+            font-size: 1.2rem;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--error);
+            border-radius: 16px;
+            color: #fca5a5;
+            margin: 20px 0;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            background: var(--accent);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px -5px var(--accent);
+            transition: all 0.2s;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.1) rotate(180deg);
+            background: var(--accent-hover);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-secondary);
+            background: var(--bg-card);
+            border-radius: 20px;
+            grid-column: 1 / -1;
+            border: 2px dashed var(--border);
+            font-size: 1.2rem;
+        }
+
+        .last-update {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .stat-value {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <span class="title-gradient">BRAINROT</span> TRACKER
+                <span class="live-indicator">
+                    <span class="live-dot"></span>
+                    LIVE
+                </span>
+            </h1>
+            <a href="https://www.roblox.com/games/114569216015812/Steal-a-Brainrot-Custom-2" target="_blank" class="game-link">
+                <span>🎮</span>
+                Play Steal a Brainrot
+            </a>
+        </div>
+        
+        <div class="stats-grid" id="stats">
+            <div class="stat-card">
+                <div class="stat-label">🧠 Всего Brainrots</div>
+                <div class="stat-value" id="totalAnimals">-</div>
+                <div class="stat-desc">во всех подставках</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">📊 Уникальных видов</div>
+                <div class="stat-value" id="uniqueSpecies">-</div>
+                <div class="stat-desc">разных Brainrots</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">👥 Игроков</div>
+                <div class="stat-value" id="totalPlayers">-</div>
+                <div class="stat-desc">владельцев Brainrots</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">🏆 Подставок</div>
+                <div class="stat-value" id="totalPodiums">-</div>
+                <div class="stat-desc">занято Brainrots</div>
+            </div>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="🔍 Поиск по имени Brainrot или чертам..." oninput="handleSearch()">
+                </div>
+                <div class="filter-group">
+                    <button class="filter-btn active" onclick="setFilter('all')">Все</button>
+                    <button class="filter-btn" onclick="setFilter('rare')">Редкие (>10)</button>
+                    <button class="filter-btn" onclick="setFilter('common')">Обычные (≤10)</button>
+                    <button class="filter-btn" onclick="setFilter('traits')">С чертами</button>
+                    <button class="filter-btn" onclick="setFilter('high-level')">Высокий уровень</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="animalsContainer">
+            <div class="loading">⏳ Загрузка реальных данных из игры...</div>
+        </div>
+
+        <div class="last-update" id="lastUpdate">
+            <span>🔄 Последнее обновление:</span>
+            <span id="updateTime">-</span>
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="fetchData()">↻</button>
+
+    <script>
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let animals = [];
+        let stats = {};
+        let updateInterval;
+
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3000/api'
+            : 'https://your-domain.com/api';
+
+        async function fetchData() {
+            const container = document.getElementById('animalsContainer');
+            container.innerHTML = '<div class="loading">⏳ Получение данных из игры...</div>';
+
+            try {
+                const response = await fetch(`${API_URL}/animals`);
+                const data = await response.json();
+                
+                animals = data.animals || [];
+                stats = data.stats || {};
+                
+                updateStats();
+                displayAnimals();
+                updateLastUpdate();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                container.innerHTML = `
+                    <div class="error">
+                        ❌ Не удалось загрузить данные. Подключаемся к игре...
+                        <br><small>Проверьте подключение к серверу</small>
+                    </div>
+                `;
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('totalAnimals').textContent = stats.total_animals || 0;
+            document.getElementById('uniqueSpecies').textContent = stats.unique_species || 0;
+            document.getElementById('totalPlayers').textContent = stats.total_players || 0;
+            document.getElementById('totalPodiums').textContent = stats.total_podiums || 0;
+        }
+
+        function updateLastUpdate() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('ru-RU', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('updateTime').textContent = timeStr;
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            displayAnimals();
+        }
+
+        function handleSearch() {
+            searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            displayAnimals();
+        }
+
+        function getAnimalEmoji(name) {
+            const emojis = {
+                'Lion': '🦁', 'Tiger': '🐯', 'Elephant': '🐘', 'Giraffe': '🦒',
+                'Zebra': '🦓', 'Monkey': '🐒', 'Penguin': '🐧', 'Kangaroo': '🦘',
+                'Panda': '🐼', 'Wolf': '🐺', 'Fox': '🦊', 'Bear': '🐻',
+                'Deer': '🦌', 'Rabbit': '🐰', 'Hedgehog': '🦔', 'Owl': '🦉',
+                'Eagle': '🦅', 'Dolphin': '🐬', 'Shark': '🦈', 'Turtle': '🐢',
+                'Horse': '🐴', 'Cow': '🐮', 'Pig': '🐷', 'Goat': '🐐',
+                'Sheep': '🐑', 'Chicken': '🐔', 'Duck': '🦆', 'Frog': '🐸',
+                'Lizard': '🦎', 'Snake': '🐍', 'Butterfly': '🦋', 'Bee': '🐝',
+                'Ant': '🐜', 'Spider': '🕷️', 'Crab': '🦀', 'Lobster': '🦞'
+            };
+            return emojis[name] || '🦴';
+        }
+
+        function displayAnimals() {
+            const container = document.getElementById('animalsContainer');
+            
+            if (!animals || animals.length === 0) {
+                container.innerHTML = '<div class="loading">⏳ Загрузка данных...</div>';
+                return;
+            }
+
+            let filtered = [...animals];
+
+            if (searchQuery) {
+                filtered = filtered.filter(a => 
+                    a.name.toLowerCase().includes(searchQuery) ||
+                    (a.traits && a.traits.some(t => t.toLowerCase().includes(searchQuery)))
+                );
+            }
+
+            switch(currentFilter) {
+                case 'rare':
+                    filtered = filtered.filter(a => a.total_count > 10);
+                    break;
+                case 'common':
+                    filtered = filtered.filter(a => a.total_count <= 10);
+                    break;
+                case 'traits':
+                    filtered = filtered.filter(a => a.traits && a.traits.length > 0);
+                    break;
+                case 'high-level':
+                    filtered = filtered.filter(a => {
+                        const avgLevel = a.instances?.reduce((sum, i) => sum + (i.level || 1), 0) / (a.instances?.length || 1);
+                        return avgLevel > 5;
+                    });
+                    break;
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="no-results">🤷 Brainrots не найдены</div>';
+                return;
+            }
+
+            let html = '<div class="animals-grid">';
+            
+            filtered.forEach(animal => {
+                const totalInstances = animal.instances?.length || 0;
+                const avgLevel = animal.instances?.reduce((sum, i) => sum + (i.level || 1), 0) / totalInstances || 1;
+                const topOwners = animal.instances?.slice(0, 3) || [];
+
+                html += `
+                    <div class="animal-card" onclick="showAnimalDetails('${animal.name}')">
+                        <div class="animal-header">
+                            <span class="animal-name">
+                                <span class="animal-emoji">${getAnimalEmoji(animal.name)}</span>
+                                ${animal.name}
+                            </span>
+                            <span class="animal-count">${animal.total_count}</span>
+                        </div>
+                        <div class="animal-traits">
+                            ${animal.all_traits?.slice(0, 4).map(t => 
+                                `<span class="trait">${t}</span>`
+                            ).join('') || ''}
+                            ${animal.all_traits?.length > 4 ? '<span class="trait">...</span>' : ''}
+                        </div>
+                        <div class="animal-stats">
+                            <div class="stat-item">
+                                <span class="label">Владельцев</span>
+                                <span class="value">${animal.unique_owners}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="label">Ср. уровень</span>
+                                <span class="value">${Math.round(avgLevel * 10) / 10}</span>
+                            </div>
+                        </div>
+                        <div class="animal-owners">
+                            ${topOwners.map(owner => `
+                                <div class="owner-avatar" title="${owner.owner}">
+                                    ${owner.owner?.charAt(0).toUpperCase()}
+                                </div>
+                            `).join('')}
+                            ${totalInstances > 3 ? `<span class="trait">+${totalInstances - 3}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function showAnimalDetails(name) {
+            alert(`Детальная информация о ${name}\n\nЭта функция будет доступна в следующем обновлении!`);
+        }
+
+        // Автообновление каждые 30 секунд
+        function startAutoUpdate() {
+            if (updateInterval) clearInterval(updateInterval);
+            updateInterval = setInterval(fetchData, 30000);
+        }
+
+        // Инициализация
+        window.onload = () => {
+            fetchData();
+            startAutoUpdate();
+        };
+    </script>
+</body>
+</html>
